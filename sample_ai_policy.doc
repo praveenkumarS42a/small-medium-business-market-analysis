@@ -1,0 +1,18 @@
+# Enterprise AI Governance Policy
+
+## 1. Objective
+To ensure ethical and responsible use of Artificial Intelligence across all departments.
+
+## 2. Scope
+This policy applies to all employees and contractors using AI tools.
+
+## 3. Data Privacy
+- All training data must be anonymized.
+- Data retention period is 5 years.
+
+## 4. Bias Mitigation
+- Dedicated Ethics Committee will perform quarterly bias testing.
+- Manual review is required for high-risk models.
+
+## 5. Computing
+- R&D projects should leverage specialized GPU clusters.
