@@ -3,11 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { useAssessmentStore } from '../store/assessmentStore';
 import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip } from 'recharts';
 import { Recommendations } from './Recommendations';
-import { Download, RefreshCw } from 'lucide-react';
+import { Download, RefreshCw, Target, TrendingUp, Trophy, Zap } from 'lucide-react';
 import generatePDF from 'react-to-pdf';
 
 export function Dashboard() {
-    const { totalScore, category, pillarScores, resetForm } = useAssessmentStore();
+    const { totalScore, category, pillarScores, marketAnalysis, industry, domain, resetForm } = useAssessmentStore();
     const navigate = useNavigate();
     const targetRef = useRef<HTMLDivElement>(null);
 
@@ -158,6 +158,91 @@ export function Dashboard() {
                         <Recommendations />
                     </div>
                 </div>
+
+                {/* AI Market Analysis Section */}
+                {marketAnalysis && (
+                    <div className="space-y-8 mt-12 animate-in fade-in slide-in-from-bottom-8 duration-700 delay-300">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <h3 className="text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                                    <Zap className="text-consultancy-blue h-6 w-6 fill-consultancy-blue/20" />
+                                    Competitive AI Market Insights
+                                </h3>
+                                <p className="text-slate-500 mt-1">Deep dive into ${domain} in the ${industry} sector.</p>
+                            </div>
+                            <div className="hidden md:block px-4 py-1.5 rounded-full bg-blue-500/10 text-blue-500 text-xs font-bold border border-blue-500/20 uppercase tracking-widest">
+                                AI-Powered Analysis
+                            </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            {/* Competitor Benchmarks */}
+                            <div className="md:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                {marketAnalysis.competitors?.map((comp: any, i: number) => (
+                                    <div key={i} className="glass-panel p-5 border-l-4 border-l-consultancy-blue flex flex-col justify-between group hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-all">
+                                        <div>
+                                            <div className="flex items-center gap-2 mb-2">
+                                                <Trophy className="h-4 w-4 text-amber-500" />
+                                                <span className="text-xs font-bold text-slate-400 uppercase tracking-tighter">Benchmarked Competitor</span>
+                                            </div>
+                                            <h4 className="font-bold text-lg text-slate-800 dark:text-white mb-2">{comp.name}</h4>
+                                            <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">{comp.key_strategy}</p>
+                                        </div>
+                                        <div className="bg-blue-50 dark:bg-blue-900/30 p-2 rounded-lg text-center">
+                                            <span className="text-xs font-bold text-consultancy-blue dark:text-blue-300">{comp.roi_highlight}</span>
+                                        </div>
+                                    </div>
+                                ))}
+                                
+                                <div className="glass-panel p-5 md:col-span-2 bg-gradient-to-br from-consultancy-blue to-blue-700 text-white border-none">
+                                    <div className="flex items-start gap-4">
+                                        <div className="bg-white/20 p-2 rounded-lg">
+                                            <Target className="h-6 w-6" />
+                                        </div>
+                                        <div>
+                                            <h4 className="font-bold mb-1">Strategic Comparison Insight</h4>
+                                            <p className="text-sm text-blue-50 leading-relaxed font-medium">
+                                                {marketAnalysis.comparison_insight}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Market Trends & Recommendations */}
+                            <div className="space-y-4">
+                                <div className="glass-panel p-5">
+                                    <h4 className="font-bold text-slate-900 dark:text-white flex items-center gap-2 mb-4">
+                                        <TrendingUp className="h-4 w-4 text-emerald-500" />
+                                        Market Trends
+                                    </h4>
+                                    <ul className="space-y-3">
+                                        {marketAnalysis.market_trends?.map((trend: string, i: number) => (
+                                            <li key={i} className="flex gap-2 text-sm text-slate-600 dark:text-slate-400">
+                                                <span className="text-blue-500 font-bold">•</span>
+                                                {trend}
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+
+                                <div className="glass-panel p-5 border-t-4 border-t-emerald-500">
+                                    <h4 className="font-bold text-slate-900 dark:text-white mb-4">Actionable ROI Strategy</h4>
+                                    <ul className="space-y-3">
+                                        {marketAnalysis.recommendations?.map((rec: string, i: number) => (
+                                            <li key={i} className="flex items-start gap-3 bg-slate-50 dark:bg-slate-800/30 p-2 rounded-lg border border-slate-100 dark:border-slate-700/50">
+                                                <div className="h-5 w-5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px] flex-shrink-0 mt-0.5">
+                                                    {i + 1}
+                                                </div>
+                                                <span className="text-xs font-medium text-slate-700 dark:text-slate-300">{rec}</span>
+                                            </li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
                 {/* FAQ / Trust Section */}
                 <div className="mt-12 space-y-8 border-t border-slate-200 dark:border-slate-800 pt-12">

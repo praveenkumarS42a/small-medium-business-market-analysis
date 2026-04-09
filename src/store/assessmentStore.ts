@@ -37,17 +37,24 @@ export interface AssessmentState {
     dynamicQuestions: DynamicQuestion[];
     awarenessScore: number;
 
+    // Market Context
+    industry: string;
+    domain: string;
+    budget: string;
+    marketAnalysis: any;
+
     // Results
     totalScore: number;
     pillarScores: Record<string, number>;
     category: Category;
 
     // Actions
-    setField: (field: keyof Omit<AssessmentState, 'totalScore' | 'pillarScores' | 'category' | 'setField' | 'calculateScore' | 'resetForm' | 'setDocuments' | 'generateQuestions' | 'answerQuestion'>, value: string) => void;
+    setField: (field: keyof Omit<AssessmentState, 'totalScore' | 'pillarScores' | 'category' | 'setField' | 'calculateScore' | 'resetForm' | 'setDocuments' | 'generateQuestions' | 'answerQuestion' | 'marketAnalysis'>, value: string) => void;
     setDocuments: (files: File[]) => void;
     calculateScore: () => void;
     generateQuestions: () => void;
     answerQuestion: (questionId: string, answer: string) => void;
+    setMarketAnalysis: (analysis: any) => void;
     resetForm: () => void;
 }
 
@@ -68,6 +75,11 @@ export const useAssessmentStore = create<AssessmentState>((set, get) => ({
     
     dynamicQuestions: [],
     awarenessScore: 0,
+
+    industry: '',
+    domain: '',
+    budget: '',
+    marketAnalysis: null,
 
     totalScore: 0,
     pillarScores: {},
@@ -143,6 +155,8 @@ export const useAssessmentStore = create<AssessmentState>((set, get) => ({
         set({ totalScore: finalScore, pillarScores, category });
     },
 
+    setMarketAnalysis: (analysis) => set({ marketAnalysis: analysis }),
+
     resetForm: () => set({
         strategyImpact: '',
         investments: '',
@@ -153,6 +167,10 @@ export const useAssessmentStore = create<AssessmentState>((set, get) => ({
         dataReadiness: '',
         innovation: '',
         ethicsGovernance: '',
+        industry: '',
+        domain: '',
+        budget: '',
+        marketAnalysis: null,
         uploadedDocuments: [],
         verificationStatus: 'idle',
         dynamicQuestions: [],

@@ -1,9 +1,11 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAssessmentStore } from '../store/assessmentStore';
-import { ArrowRight, ArrowLeft, CheckCircle2, Upload, FileText } from 'lucide-react';
+import { generateMarketAnalysis } from '../lib/gemini';
+import { ArrowRight, ArrowLeft, CheckCircle2, Upload, FileText, Loader2 } from 'lucide-react';
 
 const steps = [
+    { id: 0, title: 'Context' },
     { id: 1, title: 'Strategy' },
     { id: 2, title: 'Investment' },
     { id: 3, title: 'Talent' },
@@ -18,30 +20,50 @@ const steps = [
 ];
 
 export function AssessmentForm() {
-    const [currentStep, setCurrentStep] = useState(1);
+    const [currentStep, setCurrentStep] = useState(0);
+    const [isAnalyzing, setIsAnalyzing] = useState(false);
     const navigate = useNavigate();
     const fileInputRef = useRef<HTMLInputElement>(null);
     const {
+        industry, domain, budget,
         strategyImpact, investments, talentTech, useCases, genAiStrategy,
         operatingModel, dataReadiness, innovation, ethicsGovernance,
         uploadedDocuments, dynamicQuestions,
         setField, setDocuments, calculateScore, generateQuestions, answerQuestion
     } = useAssessmentStore();
 
-    const handleNext = () => {
+    const handleNext = async () => {
         if (currentStep === 10) {
             generateQuestions();
             setCurrentStep(11);
         } else if (currentStep < 11) {
             setCurrentStep(c => c + 1);
         } else {
+            setIsAnalyzing(true);
             calculateScore();
-            navigate('/dashboard');
+            
+            // Generate AI Market Analysis
+            try {
+                const state = useAssessmentStore.getState();
+                const analysis = await generateMarketAnalysis({
+                    industry: state.industry,
+                    domain: state.domain,
+                    budget: state.budget,
+                    currentMaturity: state.category || 'Initial'
+                });
+                useAssessmentStore.getState().setMarketAnalysis(analysis);
+            } catch (error) {
+                console.error("AI Analysis failed:", error);
+            } finally {
+                setIsAnalyzing(false);
+                navigate('/dashboard');
+            }
         }
     };
 
     const isStepValid = () => {
         switch (currentStep) {
+            case 0: return !!industry && !!domain && !!budget;
             case 1: return !!strategyImpact;
             case 2: return !!investments;
             case 3: return !!talentTech;
@@ -106,6 +128,52 @@ export function AssessmentForm() {
 
             <div className="glass-panel p-6 md:p-8 min-h-[450px] flex flex-col relative overflow-hidden">
                 <div className="flex-1 transition-opacity duration-300">
+
+                    {currentStep === 0 && (
+                        <div className="space-y-6">
+                            <h2 className="text-xl font-bold text-slate-900 dark:text-white mb-2">0. Market Context</h2>
+                            <p className="text-sm text-slate-500 mb-6">Tell us about your business to get accurate competitive benchmarks.</p>
+                            
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-2">
+                                    <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Industry</label>
+                                    <select 
+                                        value={industry}
+                                        onChange={(e) => setField('industry', e.target.value)}
+                                        className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 focus:ring-2 focus:ring-consultancy-blue outline-none transition-all"
+                                    >
+                                        <option value="">Select Industry</option>
+                                        <option value="Healthcare">Healthcare</option>
+                                        <option value="Retail">Retail</option>
+                                        <option value="Finance">Finance</option>
+                                        <option value="Manufacturing">Manufacturing</option>
+                                        <option value="Education">Education</option>
+                                        <option value="Technology">Technology</option>
+                                    </select>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Specific Domain</label>
+                                    <input 
+                                        type="text" 
+                                        placeholder="e.g. Cancer Diagnostics, E-commerce Logistics"
+                                        value={domain}
+                                        onChange={(e) => setField('domain', e.target.value)}
+                                        className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 focus:ring-2 focus:ring-consultancy-blue outline-none transition-all"
+                                    />
+                                </div>
+                                <div className="space-y-2 md:col-span-2">
+                                    <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Annual AI Budget (Approx in USD)</label>
+                                    <input 
+                                        type="text" 
+                                        placeholder="e.g. $50,000, $1M"
+                                        value={budget}
+                                        onChange={(e) => setField('budget', e.target.value)}
+                                        className="w-full p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 focus:ring-2 focus:ring-consultancy-blue outline-none transition-all"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    )}
 
                     {currentStep === 1 && (
                         <div className="space-y-6">
@@ -254,17 +322,24 @@ export function AssessmentForm() {
                 <div className="mt-8 pt-6 border-t border-slate-200 dark:border-slate-800 flex justify-between">
                     <button
                         onClick={() => setCurrentStep(c => c - 1)}
-                        className={`btn-secondary ${currentStep === 1 ? 'invisible' : ''}`}
+                        className={`btn-secondary ${currentStep === 0 ? 'invisible' : ''}`}
                     >
                         <ArrowLeft className="mr-2 h-4 w-4" /> Back
                     </button>
 
                     <button
                         onClick={handleNext}
-                        disabled={!isStepValid()}
-                        className="btn-primary"
+                        disabled={!isStepValid() || isAnalyzing}
+                        className="btn-primary min-w-[140px]"
                     >
-                        {currentStep === 11 ? 'Calculate Score' : (currentStep === 10 ? 'Start Awareness Test' : 'Next Step')} <ArrowRight className="ml-2 h-4 w-4" />
+                        {isAnalyzing ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                            <>
+                                {currentStep === 11 ? 'Calculate Score' : (currentStep === 10 ? 'Start Awareness Test' : 'Next Step')} 
+                                <ArrowRight className="ml-2 h-4 w-4" />
+                            </>
+                        )}
                     </button>
                 </div>
             </div>
